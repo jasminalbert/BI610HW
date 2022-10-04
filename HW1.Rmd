@@ -35,27 +35,35 @@ Do power analysis using simulation
 
 Assume that the distribution of distances traveled in Exponential - use rexp()
 ```{r}
-Edistances <- rexp(10000)+2
-Sdistances <- rexp(10000)+7
+Edistances <- rexp(10000)+1
+Sdistances <- rexp(10000)+3
 ```
 ``` {r}
 hist(Edistances)
 ```
 ```{r}
-N <- c(10,20,50,100,500,1000)
+N <- c(3:10,20,50,100,500,1000)
 Etmean <- mean(Edistances)
 Stmean <- mean(Sdistances)
 Emeanerror <- {}
 Smeanerror <- {}
+upperE <- {}
+lowerE <- {}
+upperS <- {}
+lowerS <- {}
 pv <- {}
 t <- {}
 for (p in seq_along(N)){
   Esmean<-replicate(100,{
     Egn <- mean(sample(Edistances,N[p]))
   })
+  upperE[p] <- mean(Esmean[97:98])
+  lowerE[p] <- mean(Esmean[2:3])
   Ssmean<-replicate(100, {
     Spf <- mean(sample(Sdistances,N[p]))
   })
+  upperS[p] <- mean(Ssmean[97:98])
+  lowerS[p] <- mean(Ssmean[2:3])
   Emeanerror[p] <- mean(abs(Esmean-Etmean))
   Smeanerror[p] <- mean(abs(Ssmean-Stmean))
   
@@ -63,13 +71,27 @@ for (p in seq_along(N)){
   t[p] <- tt$statistic
   pv[p] <- tt$p.value
 }
-
-plot(N, Emeanerror, type='l', xlab="sample size (number of people surveyed)", ylab="mean error (miles)", main="Mean error of estimates of distance commuted", ylim=c(0,0.28))
+pdf("meanError.pdf")
+plot(N, Emeanerror, type='l', xlab="sample size (number of people surveyed)", ylab="mean error (miles)", main="Mean error of estimates of distance commuted", ylim=c(0,0.5))
 lines(N, Smeanerror, col="blue")
 legend("topright", legend=c("Eugene", "Springfield"), col=c("black","blue"), lty=1)
+dev.off()
+pdf("ttest.pdf")
+par(mfrow=c(1,2), mar=c(5,3,4,0.5))
+plot(N, pv, type="b", log="x",xlab="", ylab="")
+title(ylab="p value", line=2)
+abline(h=0.05, col="red", lty=2)
+plot(N,t, type="b", log="x",xlab="", ylab="")
+title(ylab="t statistic", line=2)
+title(main="results of t test between Eugene and Springfield commuted distances", outer=T, line=-2)
+title(xlab="sample size (number of people surveyed)", outer=T, line=-2)
+dev.off()
 
-plot(N, pv)
-plot(N,t)
+pdf("CIs.pdf")
+plot(, type='l')
+for (p in seq_along(N)){
+  lines(c(lowerE[p], upperE[p]),c(p,p))
+}
 ```
 The population of Springfield is 62,729
 The population of Eugene is 170,457
